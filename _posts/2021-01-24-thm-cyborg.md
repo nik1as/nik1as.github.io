@@ -31,7 +31,7 @@ $ gobuster dir -u "http://cyborg.thm/" -w /usr/share/wordlists/seclists/Discover
 /admin                (Status: 301) [Size: 314] [--> /admin/]
 /etc                  (Status: 301) [Size: 312] [--> /etc/]
 ```
-The `/admin/` directory hosts a static website. The navigation bar links to a page labeled [Admins](http://cyborg.thm/admin/admin.html) containing a conversation snippet, which mentions a squid proxy and a backup called `music_archive`:
+The `/admin/` directory hosts a static website. The navigation bar links to a page labeled Admins containing a conversation snippet, which mentions a squid proxy and a backup called `music_archive`:
 ```
 Ok sorry guys i think i messed something up, uhh i was playing around with the squid proxy i mentioned earlier.
 I decided to give up like i always do ahahaha sorry about that.
